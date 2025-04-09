@@ -1,4 +1,4 @@
-''''
+'''
 Orifice plate object for lumped element modeling and straight-orifice 
 resistance/discharge coefficient estimation formulas for hand calculations.
 
@@ -43,9 +43,6 @@ class orifice(element):
         self.lo = lo
         self.N = N
 
-        # Nodes/faces
-        self.inlet = []
-        self.outlets = []
 
 
     ### ------------- ###
@@ -107,7 +104,6 @@ class orifice(element):
 
 ### Sharp-edged geometry cases
 ### --------------------------
-@staticmethod
 def calc_K_sharp(N, lo, do, d1, d2):
     '''
     Calculates K-factor for orifice with shap edge per [1].

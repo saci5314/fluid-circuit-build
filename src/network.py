@@ -15,7 +15,7 @@ class network:
     ### -----------
     def __init__(self, source):
         self.mesh(source)
-        
+  
     ### Meshing by breadth-first traversal
     ### ----------------------------------
     def mesh(self, source):

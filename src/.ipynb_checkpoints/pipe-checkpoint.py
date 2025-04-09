@@ -1,6 +1,6 @@
 '''
 Constant-area pipe/duct object for lumped element modeling
-and friction factor estimation formulas for hand calculations.
+and general purpose friction factor estimation formulas.
 
 Relations provided here should be restricted to incompressible flows, or 
 compressible flows for where the pressure drop incurred is << the upstream pressure.
@@ -26,7 +26,7 @@ class pipe(element):
 
     ### Constructor
     ### -----------
-    def __init__(self, name, l, Dh, epsilon, A=None, r_bend=None, a_bend=None, model="analytical"):
+    def __init__(self, name, l, Dh, epsilon, r_bend=None, a_bend=None, model="analytical"):
         '''
         Inputs:
             name    = (string) component ID, part number, etc.
@@ -44,9 +44,9 @@ class pipe(element):
         self.l = l
         self.Dh = Dh
         self.epsilon = epsilon
-        self.A = A if A is not None else pi*Dh**2/4
         self.r_bend = r_bend
         self.a_bend = a_bend
+        self.A = pi*Dh**2/4
         
         ### Data for empirical flow resistance estimation
         self.Re_data = None
