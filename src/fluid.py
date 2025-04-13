@@ -1,5 +1,5 @@
 '''
-Functions and class object for pulling temperature-dependent 
+Functions and class for pulling temperature-dependent 
 heat transport properties of common propellants.
 
 Author:
@@ -7,10 +7,25 @@ Author:
 
 Sources:
 
-    [1] L.E. Faith, G.H. Ackerman, H.T. Henderson, "Heat Sink Capabilites
-        of Jet A Fuel: Heat Transfer and Coking Studies"
-
+    [1] L.E. Faith, G.H. Ackerman, H.T. Henderson, "Heat Sink Capabilites 
+        of Jet A Fuel: Heat Transfer and Coking Studies", Shell Development
+        Company, 1971.
+        
+    [2] ...
+        
 '''
+
+import numpy as np
+import pandas as pd
+from scipy.interpolate import interp1d
+import matplotlib.pyplot as plt
+
+
+# Available fluid models
+fluids = ["JetA"]
+
+# STP Temperature
+T_STP = 273.15 # [K]
 
 
 
@@ -18,58 +33,124 @@ class Fluid:
     
     ### Constructor
     ### -----------
-    def __init__(self, name=None):
-        if name is not None:
-            self.name = name
-            
-            
+    def __init__(self, fluid=None):
+        if fluid is not None: self.assign(fluid)
+
         
-
-### Helper for interpolating fluid props 
-## 
-def interp_props(fluid, prop, T):
-    ### Import data for requested property
-    ...
+    ### Assign specific fluid
+    ### ---------------------
+    def assign(self, fluid):
+        self.T_data, \
+        self.rho_data, \
+        self.cp_data, \
+        self.k_data, \
+        self.mu_data = import_data(fluid)
+        
+        self.fluid = fluid
+        
+        
+    ### Pull specific property at specific temperature
+    ### ----------------------------------------------
+    def rho(self, T=T_STP):
+        return interp1d(self.T_data, self.rho_data, kind='cubic')(T)
     
-    ### Interpolate
-    ...
+    def cp(self, T=T_STP):
+        return interp1d(self.T_data, self.cp_data, kind='cubic')(T)
     
+    def k(self, T=T_STP):
+        return interp1d(self.T_data, self.k_data, kind='cubic')(T)
+        
+    def mu(self, T=T_STP):
+        return interp1d(self.T_data, self.mu_data, kind='cubic')(T)
 
-### Density data
-### ------------
-def density(fluid, T=T_STP):
-    return interp_props(fluid, T)
-
-
-### Specific heat capacity
-### ----------------------
-def heat_capacity(fluid, T=T_STP):
-    return interp_props(fluid, "cp", T)
-
-
-### Conductivity
-### ------------
-def conductivity(fluid, T=T_STP):
-    return interp_props(fluid, "k", T)
-
-
-### Dymamic viscocity
-### -----------------  
-def viscocity(fluid, T=T_STP):
-    return interp_props(fluid, "mu", T)
-
-
-### Request all thermal transport props
-### -----------------------------------
-def transport_props(fluid, T=T_STP):
-    cp = heat_capacity(fluid, T)
-    k = conductivity(fluid, T)
-    mu = viscocity(fluid, T)
+        
+        
+### Import raw data for specific fluid
+### ----------------------------------
+def import_data(fluid):
+    # Check if fluid is valid
+    if fluid not in fluids:
+        raise Exception("Invalid fluid:" + fluid)
+        
+    # Pull into dataframe
+    data = pd.read_csv("fluid_data/" + str(fluid) + "_data.csv")
     
-    return cp, k, mu
+    # Return as numpy arrays
+    T_data = np.array(data["T"])
+    rho_data = np.array(data["rho"])
+    cp_data = np.array(data["cp"])
+    k_data = np.array(data["k"])
+    mu_data = np.array(data["mu"])
+
+    return T_data, rho_data, cp_data, k_data, mu_data
     
     
-### Plots all transport data for specific fluid
-### -------------------------------------------
-def plot_prop_data():
-    ...
+### Interpolate data for specific properties
+### ----------------------------------------
+def interp_rho(fluid, T):
+    T_data, rho_data, _, _, _ = import_data(fluid)
+    return interp1d(T_data, rho_data, kind='cubic')(T)
+    
+def interp_cp(fluid, T):
+    T_data, _, cp_data, _, _ = import_data(fluid)
+    return interp1d(T_data, cp_data, kind='cubic')(T)
+
+def interp_k(fluid, T):
+    T_data, _, _, k_data, _ = import_data(fluid)
+    return interp1d(T_data, k_data, kind='cubic')(T)
+
+def interp_mu(fluid, T):
+    T_data, _, _, _, mu_data = import_data(fluid)
+    return interp1d(T_data, mu_data, kind='cubic')(T)
+
+
+### Plot raw and interpolated data for specific fluid
+### -------------------------------------------------
+def plot_interp_data(fluid):
+    ### Pull raw data
+    T_data, rho_data, cp_data, k_data, mu_data = import_data(fluid)
+   
+    ### Interpolation
+    T = np.linspace(min(T_data), max(T_data), 1000)
+    rho = interp_rho(fluid, T)
+    cp = interp_cp(fluid, T)
+    k = interp_k(fluid, T)
+    mu = interp_mu(fluid, T)
+    
+    ### Plotstuff
+    plt.figure(figsize=(10, 8))
+
+    plt.subplot(2, 2, 1)
+    plt.plot(T_data, rho_data, marker='.', linestyle='')
+    plt.plot(T, rho)
+    plt.title("Density")
+    plt.legend(["Raw Data", "Interpolation"])
+    plt.xlabel("Temperature [K]")
+    plt.ylabel("kg/m^3")
+
+    plt.subplot(2, 2, 2)
+    plt.plot(T_data, cp_data, marker='.', linestyle='')
+    plt.plot(T, cp)
+    plt.title("Specific Heat Capacity")
+    plt.legend(["Raw Data", "Interpolation"])
+    plt.xlabel("Temperature [K]")
+    plt.ylabel("J/(kg*K)")
+    
+    plt.subplot(2, 2, 3)
+    plt.plot(T_data, k_data, marker='.', linestyle='')
+    plt.plot(T, k)
+    plt.title("Conductivity")
+    plt.legend(["Raw Data", "Interpolation"])
+    plt.xlabel("Temperature [K]")
+    plt.ylabel("W/(m*K)")
+
+    plt.subplot(2, 2, 4)
+    plt.plot(T_data, mu_data, marker='.', linestyle='')
+    plt.plot(T, mu)
+    plt.title("Dynamic Viscocity")
+    plt.legend(["Raw Data", "Interpolation"])
+    plt.xlabel("Temperature [K]")
+    plt.ylabel("Pa*s")
+    
+    plt.tight_layout()
+    plt.show()
