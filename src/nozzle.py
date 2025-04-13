@@ -5,7 +5,13 @@ Author(s):
     Samuel Ciesielski
     
 Sources:
-    [1] 
+    [1] G. P. Sutton, O. Biblarz, "Rocket Propulsion Elements,"
+        ...
+    
+    [2] S. Rubin, "...," ...
+    
+    [3] B. W. Oppenheim, S. Rubin, "Advanced POGO Stability Analysis for
+        Liquid Rockets," The Aerospace Corporation, AIAA-92-2454-CP.
 '''
 
 from network import element

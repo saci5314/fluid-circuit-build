@@ -14,7 +14,7 @@ Sources:
 
 '''
 
-from network import element
+from network import Element
 from math import sqrt, log10, sin
 import numpy as np
 from scipy.constants import pi
@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt
 
 
 
-class pipe(element):
+class Pipe(Element):
 
     ### Constructor
     ### -----------
@@ -59,6 +59,7 @@ class pipe(element):
     ### Dynamics Data ###
     ### ------------- ###
 
+    
     ### Set custom resistance by friction factor
     ### ----------------------------------------
     def set_custom_K_curve(self, f_data, Re_data):
@@ -66,13 +67,15 @@ class pipe(element):
         self.Re_data = Re_vec # Reynold's number
         self.K_data = f_vec # Friction factor
         
-    ### Pull component inertance
-    ### ------------------------
+        
+    ### Pull inertance
+    ### --------------
     def I(self, rho):
         return rho * self.l/self.A 
     
-    ### Pull component damping loads
-    ### ----------------------------
+    
+    ### Pull quadratic damping load
+    ### ---------------------------
     def dP_damping(self, mdot, rho, mu):
         ### Reynold's number at current flowrate
         Re = rho * mdot * self.Dh / (mu * self.A)
@@ -82,10 +85,11 @@ class pipe(element):
 
         ### Friction/viscous resistance
         return f * self.l/self.Dh
-
+    
+    
     ### Plot Moody diagram curve
     ### ------------------------
-    def moody(self, rho):
+    def moody_curve(self, rho):
         ### Logscaled Reynold's numbers
         Re = np.logspace(1, 10e8, 100)
 
@@ -95,8 +99,31 @@ class pipe(element):
             f[i] = f_colebrook_white(Dh, epsilon, Re[i], N)
             
         ### Plotstuff
-
-
+        ... # (TODO)
+        
+        
+    ### Pull body load
+    ### --------------
+    def dP_body(self, rho):
+        return 0 # (TODO)
+        
+        
+    ### Pull steady flow equations
+    ### --------------------------
+    def steady_flow_eqns(self, statevars, N_sv, rho):
+        ### Relevant state variables
+        P_1 = statevars[self.ports[0]]
+        P_2 = statevars[self.ports[1]]
+        mdot_1 = statevars[N_sv/2 + self.ports[0]]
+        mdot_2 = statevars[N_sv/2 + self.ports[1]]
+        
+        return [
+            # Steady-state momentum equation
+            P_2 - P_1 - self.dP_damping(mdot_1, rho) - self.dP_body(rho),
+            
+            # Mass continuity equation
+            mdot_2 - mdot_1
+        ]
 
 ### ------------------------- ###
 ### Fricton Factor Estimation ###

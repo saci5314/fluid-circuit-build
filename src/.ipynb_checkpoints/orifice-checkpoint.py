@@ -15,14 +15,14 @@ Sources:
 
 '''
 
-from network import element
+from network import Element
 import numpy as np
 from math import sqrt
 from scipy.constants import pi
 
 
 
-class orifice(element):
+class Orifice(Element):
 
     ### CONSTRUCTOR
     ### -----------
@@ -78,8 +78,8 @@ class orifice(element):
         ### Assign total average orifice plate resistance from all datapoints
         self.set_Knet(np.mean(Knet_datapoints),self.N, self.do)
 
-    ### Pull component inertance
-    ### ------------------------
+    ### Pull inertance
+    ### --------------
     def I(self, rho):
         return rho * self.lo/self.Ao # [kg/m^4]
 
@@ -88,12 +88,27 @@ class orifice(element):
     def dP_damping(self, mdot_tot, rho):
         return self.Ko * (mdot_tot/self.N)**2 / (2*self.Ao**2 * rho) # [Pa]
 
-    ### Pull component volume load
-    ### --------------------------
+    ### Pull volume load
+    ### ----------------
     def dP_body(self):
         return 0
 
-
+    ### Pull steady flow equations
+    ### --------------------------
+    def steady_flow_eqns(self, statevars, N_sv, rho):
+        ### Relevant state variables
+        P_1 = statevars[self.ports[0]]
+        P_2 = statevars[self.ports[1]]
+        mdot_1 = statevars[N_sv/2 + self.ports[0]]
+        mdot_2 = statevars[N_sv/2 + self.ports[1]]
+        
+        return [
+            # Steady-state momentum equation
+            P_2 - P_1 - self.dP_damping(mdot_1, rho),
+            
+            # Mass continuity equation
+            mdot_2 - mdot_1
+        ]
 
 ### -------------------------- ###
 ### Flow resistance estimation ###

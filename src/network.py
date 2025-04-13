@@ -6,10 +6,8 @@ Author(s):
 
 '''
 
-import networkx as nx
-import matplotlib.pyplot as plt
 
-class network:
+class Network:
 
     ### Constructor
     ### -----------
@@ -50,12 +48,12 @@ class network:
     ### Meshing helper funcs
     ### --------------------
     def update_boundary(self, top, n):
-        self.nodes.append(boundary())
+        self.nodes.append(Boundary())
         top.ports[n] = len(self.nodes) - 1
 
     def update_connection(self, top, neighbor, n):
         # Build connection to neighbor
-        self.nodes.append(connection())
+        self.nodes.append(Connection())
         top.ports[n] = len(self.nodes) - 1
 
         # Build connection from neighbor
@@ -69,27 +67,27 @@ class network:
         ### List all nodes by type
         connections = []
         boundaries = []
-        for n, Node in enumerate(self.nodes):
-            if isinstance(Node, connection):
+        for n, node in enumerate(self.nodes):
+            if isinstance(node, Connection):
                 connections.append(n)
-            elif isinstance(Node, boundary): 
+            elif isinstance(node, Boundary): 
                 boundaries.append(n)
                 
-        print("Bulk nodes: ", connections)
-        print("Boundary nodes: ", boundaries)
+        print("Bulk nodes:", connections)
+        print("Boundary nodes:", boundaries)
               
         ### List all nodes by element
         print("\nNodes by element: ")
         print("-----------------")
-        for i, Element in enumerate(self.elements):
-            print(Element.name+":", Element.ports) 
+        for i, element in enumerate(self.elements):
+            print(element.name+":", element.ports) 
             
         ### List all neighbors of each element
         print("\nNeighbors by element: ")
         print("---------------------")
-        for i, Element in enumerate(self.elements):
-            print(Element.name+":")
-            for n, neighbor in enumerate(Element.neighbors): 
+        for i, element in enumerate(self.elements):
+            print(element.name+":")
+            for n, neighbor in enumerate(element.neighbors): 
                 if neighbor is None: name = "Boundary"
                 else: name = neighbor.name
                 print("   Port "+str(n)+":", name)
@@ -100,7 +98,7 @@ class network:
 ### Lumped Element Base Class ###
 ### ------------------------- ###
                         
-class element:    
+class Element:    
     
     ### Base constructor
     def __init__(self, name, num_ports):
@@ -133,15 +131,15 @@ class element:
 ### Node Base Class and Sub-classes ###
 ### ------------------------------- ###
 
-class node:
+class Node:
     def __init__(self):
         ...
         
-class connection(node):
+class Connection(Node):
     def __init__(self):
         ...
 
-class boundary(node):
+class Boundary(Node):
     def __init__(self):
         ...
         

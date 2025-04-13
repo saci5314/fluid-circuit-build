@@ -3,6 +3,15 @@ Supersonic converging-diverging nozzle lumped element object.
 
 Author(s):
     Samuel Ciesielski
+    
+Sources:
+    [1] G. P. Sutton, O. Biblarz, "Rocket Propulsion Elements,"
+        ...
+    
+    [2] S. Rubin, "...," ...
+    
+    [3] B. W. Oppenheim, S. Rubin, "Advanced POGO Stability Analysis for
+        Liquid Rockets," The Aerospace Corporation, AIAA-92-2454-CP.
 '''
 
 from network import element
@@ -177,7 +186,9 @@ def ideal_mdot(F_t, gamma, R, T_c):
     '''
     Inputs:
         F_t = (scalar) [N] target thrust
-        gamma
+        gamma = (scalar) specific heat ratio
+        R = (scalar) [] gas constant
+        T_c = (scalar) [K]
     '''
 
     return F_t/nozzle.ideal_exit_vel()
