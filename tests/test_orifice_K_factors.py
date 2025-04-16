@@ -12,12 +12,11 @@ import sys
 import os
 sys.path.append(os.path.abspath("../src"))
 
+import orifice
 import numpy as np
 import matplotlib.pyplot as plt
 
-import orifice
-import importlib
-importlib.reload(orifice)
+
 
 
 ### Thin, sharp-edged orifices in transition section

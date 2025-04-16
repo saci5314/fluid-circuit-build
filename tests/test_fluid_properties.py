@@ -1,12 +1,23 @@
+'''
+Qualitative tests for thermalfluid property models.
+
+'''
+
 import sys
 import os
 sys.path.append(os.path.abspath("../src"))
 
+
+
 import fluid
+import numpy as np
+import matplotlib.pyplot as plt
+
+
 
 ### Plot raw and interpolated data for specific fluid
 ### -------------------------------------------------
-def plot_interp_data(fluid_name):
+def test_interp_data(fluid_name):
     ### Raw data
     T_data, rho_data, cp_data, k_data, mu_data = fluid.import_data(fluid_name)
    

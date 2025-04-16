@@ -15,10 +15,12 @@ Sources:
         
 '''
 
+import os
 import numpy as np
 import pandas as pd
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
+
 
 
 # Available fluid models
@@ -67,13 +69,22 @@ class Fluid:
         
 ### Import raw data for specific fluid
 ### ----------------------------------
-def import_data(fluid):
+def import_data(fluid_name):
     # Check if fluid is valid
-    if fluid not in fluids:
-        raise Exception("Invalid fluid:" + fluid)
+    if fluid_name not in fluids:
+        raise Exception("Invalid fluid:" + fluid_name)
         
+    # Get fluid.py directory
+    module_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # Build path to file containing property data
+    data_path = os.path.join(module_dir, '..', \
+                                         'src', \
+                                         'fluid_data', \
+                                         str(fluid_name)+"_data.csv")
+
     # Pull into dataframe
-    data = pd.read_csv("fluid_data/" + str(fluid) + "_data.csv")
+    data = pd.read_csv(os.path.abspath(data_path))
     
     # Return as numpy arrays
     T_data = np.array(data["T"])

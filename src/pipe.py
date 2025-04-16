@@ -14,6 +14,7 @@ Sources:
 
 '''
 
+import pipe
 from network import Element
 from math import sqrt, log10, sin
 import numpy as np

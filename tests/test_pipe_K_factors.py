@@ -15,9 +15,6 @@ sys.path.append(os.path.abspath("../src"))
 import numpy as np
 import matplotlib.pyplot as plt
 
-import pipe
-import importlib
-importlib.reload(pipe)
 
 
 ### Moody diagram for Colebrook-White formula
