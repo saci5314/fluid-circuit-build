@@ -140,7 +140,10 @@ def f_colebrook_white(Dh, epsilon, Re, N=4):
         N = number of iterations
     '''
 
-    ### Initial guess
+    ### Laminar case
+    if Re < 2100: return 64/Re
+
+    ### Initial guesss
     f = .05
 
     ### Colebrook-White equation with N iterations
@@ -148,6 +151,7 @@ def f_colebrook_white(Dh, epsilon, Re, N=4):
         f = (2*log10(epsilon/(3.7*Dh) + 2.51/(Re*sqrt(f))))**-2 
     
     return f
+
 
 ### Churchill's formula (explicit)
 ### ------------------------------
@@ -158,13 +162,61 @@ def f_churchill(Dh, epsilon, Re):
         epsilon = [m] surface roughness
         Re      = Reynold's number
     '''
+    
+    ### Laminar case
+    if Re < 2100: return 64/Re
 
     return (2*log10(epsilon/(3.7*Dh) + (7/Re)**.9))**-2
 
-### Curvefitting
-### ------------
-def f_fit():
-    ...
+
+### Generate Moody Diagram
+### ----------------------
+def moody(method="Colebrook-White", epsilon_vec=None):
+    '''
+    Generates fricton factor curves for various relative
+    roughnesses (aka a Moody Diagram).
+    
+    Inputs:
+        method      = (string) type of friction factor calculation
+        epsilon_vec = (vector) relative roughnesses to evaluate
+    '''
+    
+    ### Verify friction factor calculation method
+    if method == "Colebrook-White": f_func = f_colebrook_white
+    elif method == "Churchill": f_func = f_churchill
+    
+    ### Populate relative roughnesses if custom ones weren't provided
+    if epsilon_vec == None:
+        epsilon_vec = [5e-2, 4e-2, 3e-2, 2e-2, 1e-2, 5e-3, 2e-3, 1e-3, \
+                       5e-4, 2e-4, 1e-4, 5e-5, 1e-5, 5e-6, 1e-6, 1e-7]
+
+    ### Preallocate
+    Re = np.logspace(2, 9, num=100)
+    f = np.zeros(100)
+
+    ### Reference diameter ratios by exit diameter
+    
+    ### Calculate loss coefficients and plot
+    fig, ax = plt.subplots()
+    for epsilon in epsilon_vec:  # skip do=0
+        for i in range(100):
+            f[i] = f_func(1, epsilon, Re[i])
+                
+        plt.plot(Re, f, label=f"$relative roughness$={epsilon}") 
+    
+    ### Decorate
+    plt.title("Moody Diagram via " + method + " Formula")
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.xlim(5e2, 1e9)
+    plt.ylim(.005, .1)
+    plt.xlabel("$Re$")
+    plt.ylabel("$f$")
+    plt.grid(True, which='both')
+
+    plt.legend(fontsize=8, loc='center left', bbox_to_anchor=(1, 0.5))
+    plt.show()
+
 
 ### -------------------------- ###
 ### Flow Resistance Estimation ###
@@ -173,6 +225,12 @@ def f_fit():
 ### K-factor due to friction
 ### ------------------------
 def calc_K_friction(f, l, d):
+    '''
+    Inputs:
+        f = (scalar) friction factor
+        l = (scalar) [m] pipe length
+        d = (vector) [m] pipe diameter
+    '''
     return f * (l/d)
 
 ### K-factor due to circular pipe bends
@@ -191,9 +249,10 @@ def calc_K_bend(f, d, r, a):
 
     ### Calculate K factor
     K = f*a*(r/d) + (.1 + 2.4*f)*sin(a/2) + \
-        6.6*f*(sqrt(sin(a/2)) + sin(a/2))/(r/d)/(4*a/pi)
+        6.6*f*(sqrt(sin(a/2)) + sin(a/2))/(r/d)**(4*a/pi)
 
     return K
+
 
 
 

@@ -111,7 +111,7 @@ class Orifice(Element):
         ]
 
 ### -------------------------- ###
-### Flow resistance estimation ###
+### Flow Resistance Estimation ###
 ### -------------------------- ###
 ### aka "K-factor"
 ### aka "flow coefficient"
@@ -119,39 +119,40 @@ class Orifice(Element):
 
 ### Sharp-edged geometry cases
 ### --------------------------
-def calc_K_sharp(N, lo, do, d1, d2):
+def calc_K_sharp(N, do, d1, d2, t):
     '''
-    Calculates K-factor for orifice with shap edge per [1].
+    Calculates loss coefficient for orifice with sharp edge 
+    per formulas provided in [1].
 
     Inputs:
         N  = (scalar) number of orifices in orifice plate
-        lo = (scalar) orifice length
         do = (scalar) orificie diameter
         d1 = (scalar) upstream pipe diameter
         d2 = (scalar) downstream pipe diameter
+        t  = (scalar) orifice thickness/length
     '''
 
     ### Diameter ratio
     beta = do/d1
 
     ### Jet velocity ratio
-    lamb = 1 + 0.622*(1 - .215*beta**2 + .785*beta**5)
+    lamb = 1 + .622*(1 - .215*beta**2 - .785*beta**5)
 
     ### Thin plate case
-    if lo/do < .2:
+    if t/do < .2:
         # single orifice resistance
         Ko = .0696*(1 - beta**5)*lamb**2 + (lamb - (do/d2)**2)**2
 
     ### Thick plate case
-    elif .2 <= lo/do < 1.4:
+    elif .2 <= t/do <= 1.4:
         # thick-edge correction coefficient
-        Cth = (1 - .5*(lo/(1.4*do))**2.5 - .5*(lo/(1.4*do))**3)**4.5
+        Cth = (1 - .5*(t/(1.4*do))**2.5 - .5*(t/(1.4*do))**3)**4.5
 
         # single orifice resistance
         Ko = .0696*(1 - beta**5)*lamb**2 + Cth*(lamb - (do/d2)**2)**2 + \
                 (1 - Cth)*((1 - lamb)**2 + (1 - (do/d2)**2)**2)
 
-    elif lo/do >= 1.4:
+    elif t/do > 1.4:
         warnings.warn("Orifices with an l/d >= 1.4 are not supported yet. \
                       Need to add friction estimation onboard orifice object.")
 
@@ -164,11 +165,11 @@ def calc_K_sharp(N, lo, do, d1, d2):
 ### -----------------------
 def calc_K_rounded(N, do, d1, d2, r):
     '''
-    Calculates K-factor for orifice with filleted edge per [1].
+    Calculates loss coefficient for orifice with filleted
+    edge per formulas provided in [1].
 
     Inputs:
         N  = (scalar) number of orifices in orifice plate
-        lo = (scalar) orifice length
         do = (scalar) orifice diameter
         d1 = (scalar) upstream pipe diameter
         d2 = (scalar) downstream pipe diameter
@@ -180,7 +181,7 @@ def calc_K_rounded(N, do, d1, d2, r):
 
     ### Jet contraction ratio for small radius case
     if r/do <= 1:
-        lamb = 1 + .622*(1 - .3*sqrt(r/do) - .70*(r/do))**4 * \
+        lamb = 1 + .622*(1 - .3*np.sqrt(r/do) - .70*(r/do))**4 * \
                    (1 - .215*beta**2 - .785*beta**5)
 
     ### Jet contraction ratio for large radius case
@@ -188,8 +189,8 @@ def calc_K_rounded(N, do, d1, d2, r):
         lamb = 1
 
     ### Single orifice resistance 
-    Ko = .0696*(1 - .569*(r/do))*(1 - sqrt(r/do)*beta) * \
-            (1 - beta**5)*lamb**2 + (lamb**2 - (do/d2)**2)**2
+    Ko = .0696*(1 - .569*(r/do))*(1 - np.sqrt(r/do)*beta) * \
+            (1 - beta**5)*lamb**2 + (lamb - beta**2)**2
 
     ### Orifice plate total resistance
     Knet = Ko/N**2
@@ -198,16 +199,17 @@ def calc_K_rounded(N, do, d1, d2, r):
 
 ### Beveled geometry cases
 ### ----------------------
-def calc_K_beveled(N, lo, do, d1, d2, theta):
+def calc_K_beveled(N, do, d1, d2, l, theta):
     '''
-    Calculates K-factor for orifice with beveled edge per [1].
+    Calculates loss coefficient for orifice with beveled 
+    edge per formulas provided in[1].
 
     Inputs:
         N     = (scalar) number of orifices in orifice plate
-        lo    = (scalar) orifice length
         do    = (scalar) orifice diameter
         d1    = (scalar) upstream pipe diameter
         d2    = (scalar) downstream pipe diameter
+        l     = (scalar) orifice thickness/length
         theta = (scalar) [deg] bevel angle relative to flow direction
     '''
 
@@ -215,17 +217,18 @@ def calc_K_beveled(N, lo, do, d1, d2, theta):
     beta = do/d1
 
     ### Bevel coefficient
-    Cb = (1 - theta/90) * (theta/90)**(1/(2 + lo/do))
+    Cb = (1 - theta/90) * (theta/90)**(1/(2 + l/do))
 
     ### Jet velocity ratio
-    lamb = 1 + .622*(1 - Cb*(lo/do)**((1 - (lo/do)**.25)/2))
+    lamb = 1 + .622*(1 - Cb*(l/do)**((1 - (l/do)**.25)/2)) * \
+            (1 - .215*beta**2 - .785*beta**5)
 
     ### Single orifice resistance
-    Ko = .0696*(1 - Cb*(lo/do))*(1 - .42*sqrt(lo/do)*beta**2) * \
-            (1 - lamb**5)*lamb**2 + (lamb - (do/d2)**2)**2
+    Ko = .0696*(1 - Cb*(l/do))*(1 - .42*np.sqrt(l/do)*beta**2) * \
+            (1 - beta**5)*lamb**2 + (lamb - beta**2)**2
 
     ### Orifice plate total resistance
-    Knet = Ko/N^2
+    Knet = Ko/N**2
 
     return Ko, Knet
 
