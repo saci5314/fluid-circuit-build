@@ -1,7 +1,4 @@
-# fluids-build
+# fluid-circuit-build
 
-## **!!! Under construction !!!**
-
-Fluid system lumped-element modeling tools.
-
+**!!! Under construction !!!**
 
